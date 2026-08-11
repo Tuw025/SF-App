@@ -25,6 +25,48 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
   });
   const hasApiKey = !!(dbUser && dbUser.aiApiKey);
 
+  // Lấy toàn bộ ngày hoạt động (tạo hoặc ôn tập từ vựng)
+  const allWords = await prisma.word.findMany({
+    where: { userId },
+    select: { createdAt: true, updatedAt: true }
+  });
+
+  const activeDates = new Set<string>();
+  allWords.forEach(w => {
+    activeDates.add(w.createdAt.toISOString().split('T')[0]);
+    activeDates.add(w.updatedAt.toISOString().split('T')[0]);
+  });
+
+  const uniqueDates = Array.from(activeDates).sort().reverse();
+  const todayDate = new Date();
+  const todayStr = todayDate.toISOString().split('T')[0];
+  const yesterdayDate = new Date();
+  yesterdayDate.setDate(yesterdayDate.getDate() - 1);
+  const yesterdayStr = yesterdayDate.toISOString().split('T')[0];
+
+  let streak = 0;
+  let checkDateStr = todayStr;
+
+  if (uniqueDates.includes(todayStr)) {
+    streak = 1;
+  } else if (uniqueDates.includes(yesterdayStr)) {
+    streak = 1;
+    checkDateStr = yesterdayStr;
+  }
+
+  if (streak > 0) {
+    let currentDate = new Date(checkDateStr);
+    while (true) {
+      currentDate.setDate(currentDate.getDate() - 1);
+      const prevDayStr = currentDate.toISOString().split('T')[0];
+      if (uniqueDates.includes(prevDayStr)) {
+        streak++;
+      } else {
+        break;
+      }
+    }
+  }
+
   const params = await searchParams;
   const currentFilter = params.filter || 'all';
   const currentLang = params.lang || 'en';
@@ -157,7 +199,7 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
               </div>
               <div>
                 <p className="text-slate-500 font-semibold mb-1">Streaks 🔥</p>
-                <h3 className="text-4xl font-black text-slate-800">5 days</h3>
+                <h3 className="text-4xl font-black text-slate-800">{streak} {streak <= 1 ? 'day' : 'days'}</h3>
               </div>
             </div>
           </div>
