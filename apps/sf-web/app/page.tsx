@@ -32,7 +32,7 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
   });
 
   const activeDates = new Set<string>();
-  allWords.forEach(w => {
+  allWords.forEach((w: any) => {
     activeDates.add(w.createdAt.toISOString().split('T')[0] as string);
     activeDates.add(w.updatedAt.toISOString().split('T')[0] as string);
   });
@@ -246,7 +246,7 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100/80">
-                {words.map((word) => (
+                {words.map((word: any) => (
                   <tr key={word.id} className="hover:bg-white/80 transition-colors group">
                     <td className="px-6 py-5">
                       <Link href={`/?filter=${currentFilter}&lang=${currentLang}&wordId=${word.id}`} className="font-bold text-lg text-slate-800 group-hover:text-blue-600 transition-colors block">

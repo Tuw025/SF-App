@@ -117,7 +117,7 @@ export async function POST(req: Request) {
       await redis.set(cacheKey, translationData, 'EX', 60 * 60 * 24 * 30);
     }
 
-    let cleanedData = translationData.replace(/```json/g, '').replace(/```/g, '').trim();
+    let cleanedData = (translationData || "{}").replace(/```json/g, '').replace(/```/g, '').trim();
     const parsedData = JSON.parse(cleanedData);
 
     return NextResponse.json({ status: 'success', data: parsedData }, {
