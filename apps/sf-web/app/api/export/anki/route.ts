@@ -32,7 +32,7 @@ export async function GET(req: Request) {
 
     const apkg = new Exporter(lang ? `SF Vocabulary (${lang.toUpperCase()})` : 'SF Vocabulary');
 
-    words.forEach(word => {
+    words.forEach((word: any) => {
       const front = `<div style="text-align:center; font-size: 24px; padding: 20px;">${word.originalText}</div>`;
       const back = `
         <div style="text-align:center;">
