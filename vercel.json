@@ -1,0 +1,5 @@
+{
+  "buildCommand": "turbo run build",
+  "outputDirectory": "apps/sf-web/.next",
+  "framework": "nextjs"
+}
