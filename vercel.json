@@ -1,5 +1,0 @@
-{
-  "buildCommand": "npx turbo run build --filter=sf-web",
-  "outputDirectory": "apps/sf-web/.next",
-  "framework": "nextjs"
-}
