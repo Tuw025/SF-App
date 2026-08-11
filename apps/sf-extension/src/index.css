@@ -1,0 +1,19 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+#sf-extension-root {
+  /* Ensure the root element doesn't interfere with the page layout */
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 999999;
+}
+
+#sf-extension-root > * {
+  /* Enable pointer events only for the popup itself */
+  pointer-events: auto;
+}

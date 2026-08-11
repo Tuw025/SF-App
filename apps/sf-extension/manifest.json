@@ -1,0 +1,27 @@
+{
+  "manifest_version": 3,
+  "name": "SF - Self Learning",
+  "version": "1.0.0",
+  "description": "Tra cứu từ vựng 1-click & Lưu trữ offline",
+  "background": {
+    "service_worker": "src/background.ts",
+    "type": "module"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["src/content.tsx"]
+    }
+  ],
+  "permissions": [
+    "storage",
+    "activeTab",
+    "scripting",
+    "identity",
+    "cookies"
+  ],
+  "host_permissions": [
+    "http://localhost:3000/*",
+    "https://sf-web.vercel.app/*"
+  ]
+}

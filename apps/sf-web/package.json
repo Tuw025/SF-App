@@ -1,0 +1,41 @@
+{
+  "name": "sf-web",
+  "version": "0.1.0",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "dev": "next dev --port 3000",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint --max-warnings 0",
+    "check-types": "next typegen && tsc --noEmit"
+  },
+  "dependencies": {
+    "@google/genai": "^2.16.0",
+    "@prisma/client": "^5.22.0",
+    "@repo/ui": "*",
+    "anki-apkg-export": "^4.0.3",
+    "clsx": "^2.1.1",
+    "framer-motion": "^13.1.0",
+    "ioredis": "^6.0.0",
+    "lucide-react": "^1.31.0",
+    "next": "16.3.0",
+    "next-auth": "^4.24.15",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "tailwind-merge": "^3.6.0"
+  },
+  "devDependencies": {
+    "@repo/eslint-config": "*",
+    "@repo/typescript-config": "*",
+    "@types/node": "^22.15.3",
+    "@types/react": "19.2.2",
+    "@types/react-dom": "19.2.2",
+    "autoprefixer": "^10.5.4",
+    "eslint": "^9.39.1",
+    "postcss": "^8.5.23",
+    "prisma": "^5.22.0",
+    "tailwindcss": "^3.4.19",
+    "typescript": "5.9.2"
+  }
+}
