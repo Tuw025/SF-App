@@ -1,6 +1,14 @@
 {
   "$schema": "https://turborepo.dev/schema.json",
   "ui": "tui",
+  "globalEnv": [
+    "NEXTAUTH_SECRET",
+    "NEXTAUTH_URL",
+    "GOOGLE_CLIENT_ID",
+    "GOOGLE_CLIENT_SECRET",
+    "DATABASE_URL",
+    "DIRECT_URL"
+  ],
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
