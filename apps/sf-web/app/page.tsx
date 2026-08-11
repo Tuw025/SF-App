@@ -10,7 +10,7 @@ import AiSettingsButton from '../components/ai-settings-button'
 
 const prisma = new PrismaClient()
 
-export default async function Dashboard({ searchParams }: { searchParams: Promise<{ filter?: string, lang?: string }> }) {
+export default async function Dashboard({ searchParams }: { searchParams: Promise<{ filter?: string, lang?: string, wordId?: string }> }) {
   const session = await getServerSession(authOptions);
   
   if (!session || !session.user) {
@@ -33,16 +33,16 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
 
   const activeDates = new Set<string>();
   allWords.forEach(w => {
-    activeDates.add(w.createdAt.toISOString().split('T')[0]);
-    activeDates.add(w.updatedAt.toISOString().split('T')[0]);
+    activeDates.add(w.createdAt.toISOString().split('T')[0] as string);
+    activeDates.add(w.updatedAt.toISOString().split('T')[0] as string);
   });
 
   const uniqueDates = Array.from(activeDates).sort().reverse();
   const todayDate = new Date();
-  const todayStr = todayDate.toISOString().split('T')[0];
+  const todayStr = todayDate.toISOString().split('T')[0] as string;
   const yesterdayDate = new Date();
   yesterdayDate.setDate(yesterdayDate.getDate() - 1);
-  const yesterdayStr = yesterdayDate.toISOString().split('T')[0];
+  const yesterdayStr = yesterdayDate.toISOString().split('T')[0] as string;
 
   let streak = 0;
   let checkDateStr = todayStr;
@@ -58,7 +58,7 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
     let currentDate = new Date(checkDateStr);
     while (true) {
       currentDate.setDate(currentDate.getDate() - 1);
-      const prevDayStr = currentDate.toISOString().split('T')[0];
+      const prevDayStr = currentDate.toISOString().split('T')[0] as string;
       if (uniqueDates.includes(prevDayStr)) {
         streak++;
       } else {
@@ -83,11 +83,11 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
     where: whereClause,
     orderBy: { createdAt: 'desc' },
     take: 50
-  }).catch(() => [])
+  });
 
   // Đếm tổng số lượng (Thống kê)
-  const totalWords = await prisma.word.count({ where: { userId, language: currentLang } }).catch(() => 0);
-  const dueWords = await prisma.word.count({ where: { userId, language: currentLang, nextReviewDate: { lte: new Date() } } }).catch(() => 0);
+  const totalWords = await prisma.word.count({ where: { userId, language: currentLang } });
+  const dueWords = await prisma.word.count({ where: { userId, language: currentLang, nextReviewDate: { lte: new Date() } } });
 
   // Fetch selected word if any
   let selectedWord = null;
