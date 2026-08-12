@@ -132,7 +132,7 @@ export async function POST(req: Request) {
 
         const geminiData = await geminiRes.json();
         const textResponse = geminiData.candidates?.[0]?.content?.parts?.[0]?.text;
-        translationData = textResponse || "{}";
+        translationData = textResponse || JSON.stringify(geminiData);
       }
       
       try {
