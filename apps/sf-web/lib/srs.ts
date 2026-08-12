@@ -23,7 +23,7 @@ export function calculateSM2(
     nextRepetition += 1;
   } else {
     nextRepetition = 0;
-    nextInterval = 1;
+    nextInterval = 0; // Trả lời sai -> Ôn lại ngay trong ngày
   }
 
   const nextReviewDate = new Date();
