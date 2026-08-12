@@ -3,10 +3,6 @@ import ReactDOM from 'react-dom/client';
 
 interface Meaning {
   translatedText: string;
-  englishExplanation?: string;
-  partOfSpeech?: string;
-  ipa: string;
-  isIdiom?: boolean;
   normalizedWord?: string;
   detectedLanguage?: string;
 }
@@ -108,10 +104,6 @@ const Popup = () => {
           if (response?.status === 'success' && response.data) {
             setMeaning({
               translatedText: response.data.translatedText,
-              englishExplanation: response.data.englishExplanation,
-              ipa: response.data.ipa,
-              isIdiom: response.data.isIdiom,
-              partOfSpeech: response.data.partOfSpeech,
               normalizedWord: response.data.normalizedWord,
               detectedLanguage: response.data.detectedLanguage
             });
@@ -140,11 +132,7 @@ const Popup = () => {
         originalText: meaning.normalizedWord || selectedText,
         translatedText: meaning.translatedText,
         contextSentence: contextSentence,
-        language: meaning.detectedLanguage || 'en',
-        ipa: meaning.ipa,
-        isIdiom: meaning.isIdiom,
-        partOfSpeech: meaning.partOfSpeech,
-        englishExplanation: meaning.englishExplanation
+        language: meaning.detectedLanguage || 'en'
       }
     }, (response) => {
       setLoadingSave(false);
@@ -188,15 +176,10 @@ const Popup = () => {
           <h3 style={{ margin: 0, fontSize: '20px', fontWeight: 'bold', color: '#0f172a' }}>
             {meaning?.normalizedWord || selectedText}
           </h3>
-          {(meaning as any)?.partOfSpeech && (
-            <span style={{ fontSize: '11px', color: '#64748b', fontStyle: 'italic', display: 'block', marginTop: '2px' }}>
-              {(meaning as any).partOfSpeech}
-            </span>
-          )}
         </div>
-        {(meaning?.ipa || quickIpa) && (
+        {quickIpa && (
           <span style={{ fontSize: '12px', backgroundColor: '#eff6ff', color: '#2563eb', padding: '4px 8px', borderRadius: '6px', fontFamily: 'monospace', marginLeft: '10px' }}>
-            {meaning?.ipa || quickIpa}
+            {quickIpa}
           </span>
         )}
       </div>
@@ -230,20 +213,6 @@ const Popup = () => {
           <p style={{ fontSize: '16px', color: '#334155', fontWeight: 500, margin: '0 0 10px 0' }}>
             {meaning.translatedText}
           </p>
-          {meaning.englishExplanation && (
-            <div style={{ 
-              fontSize: '13px', 
-              color: '#475569', 
-              backgroundColor: '#f8fafc',
-              padding: '10px 12px',
-              borderRadius: '8px',
-              borderLeft: '3px solid #3b82f6',
-              lineHeight: '1.4'
-            }}>
-              <span style={{fontWeight: 600, color: '#3b82f6', display: 'block', marginBottom: '4px'}}>💡 Context Meaning:</span>
-              {meaning.englishExplanation}
-            </div>
-          )}
         </div>
       ) : (
         <p style={{ fontSize: '14px', color: '#ef4444', fontStyle: 'italic', margin: '16px 0' }}>{errorMessage || "Lỗi dịch thuật"}</p>
@@ -267,7 +236,7 @@ const Popup = () => {
             opacity: loadingSave ? 0.7 : 1
           }}
         >
-          {loadingSave ? 'Đang lưu...' : saveStatus === 'success' ? '✔ Đã lưu vào SF' : saveStatus === 'error' ? '✖ Lưu thất bại' : 'Lưu vào hệ thống SF'}
+          {loadingSave ? 'Đang phân tích sâu & Lưu...' : saveStatus === 'success' ? '✔ Đã lưu vào SF' : saveStatus === 'error' ? '✖ Lưu thất bại' : 'Lưu vào hệ thống SF'}
         </button>
       )}
       {saveStatus === 'error' && <p style={{ fontSize: '12px', color: '#ef4444', marginTop: '8px' }}>{errorMessage}</p>}

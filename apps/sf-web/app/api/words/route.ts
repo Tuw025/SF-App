@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "../auth/[...nextauth]/route";
+import { GoogleGenAI } from '@google/genai';
 
 import { prisma } from '../../../lib/prisma';
 
@@ -27,10 +28,83 @@ export async function POST(req: Request) {
 
     const userId = (session.user as any).id;
     const body = await req.json();
-    const { originalText, translatedText, contextSentence, domain, contextUrl, language, ipa, isIdiom, partOfSpeech, englishExplanation } = body;
+    const { originalText, translatedText, contextSentence, domain, contextUrl, language } = body;
 
     if (!originalText || !translatedText) {
       return NextResponse.json({ error: 'Missing parameters' }, { status: 400 });
+    }
+
+    // 1. Fetch user API Key for deep context generation
+    const dbUser = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { preferredAiModel: true, aiApiKey: true }
+    });
+
+    let ipa = "";
+    let isIdiom = false;
+    let partOfSpeech = null;
+    let englishExplanation = null;
+
+    if (dbUser && dbUser.aiApiKey) {
+      try {
+        const prompt = `
+          Analyze this vocabulary word conceptually: "${originalText}"
+          Context sentence: "${contextSentence}"
+          Translated meaning: "${translatedText}"
+          Language: ${language || 'en'}
+
+          Return a strict JSON object with EXACTLY these 4 fields:
+          - englishExplanation (string): A simple English explanation of the word's meaning in this specific context, including any grammatical nuances (use A2/B1 level English).
+          - partOfSpeech (string): Part of speech (e.g., Noun, Verb, Adjective, etc.)
+          - ipa (string): The actual phonetic transcription (e.g., /maɪˈɡreɪʃn/ for English IPA, Romaji for Japanese). DO NOT output placeholders like /.../
+          - isIdiom (boolean): true if it's an idiom/phrasal verb
+        `;
+
+        let aiResponseData = "{}";
+
+        if (dbUser.preferredAiModel.includes('gpt') || dbUser.preferredAiModel.includes('llama')) {
+          const endpoint = dbUser.preferredAiModel.includes('llama') 
+            ? 'https://api.groq.com/openai/v1/chat/completions' 
+            : 'https://api.openai.com/v1/chat/completions';
+            
+          const aiRes = await fetch(endpoint, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${dbUser.aiApiKey}`
+            },
+            body: JSON.stringify({
+              model: dbUser.preferredAiModel,
+              messages: [{ role: 'user', content: prompt }],
+              temperature: 0,
+              response_format: { type: "json_object" }
+            })
+          });
+          
+          if (aiRes.ok) {
+            const openAiData = await aiRes.json();
+            aiResponseData = openAiData.choices[0].message.content || "{}";
+          }
+        } else {
+          const ai = new GoogleGenAI({ apiKey: dbUser.aiApiKey });
+          const response = await ai.models.generateContent({
+            model: dbUser.preferredAiModel,
+            contents: prompt,
+            config: { temperature: 0, responseMimeType: 'application/json' }
+          });
+          aiResponseData = response.text || "{}";
+        }
+
+        let cleanedData = aiResponseData.replace(/```json/g, '').replace(/```/g, '').trim();
+        const parsedData = JSON.parse(cleanedData);
+        
+        ipa = parsedData.ipa || "";
+        isIdiom = parsedData.isIdiom || false;
+        partOfSpeech = parsedData.partOfSpeech || null;
+        englishExplanation = parsedData.englishExplanation || null;
+      } catch (err) {
+        console.error("Deep Context AI Error:", err);
+      }
     }
 
     // Check for existing word

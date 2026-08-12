@@ -68,18 +68,13 @@ export async function POST(req: Request) {
         
         Your tasks:
         1. Detect the language of the highlighted text (e.g., 'en', 'ja', 'zh', 'fr', 'de').
-        2. Normalize the text strictly to its root dictionary form (e.g., remove trailing punctuation, remove grammar particles like 'wa'/'wo' in Japanese, remove conjugation, and extract only the core vocabulary word).
+        2. Normalize the text strictly to its root dictionary form (e.g., remove trailing punctuation).
         3. Translate it to Vietnamese contextually.
         
-        If the word is an idiom, set isIdiom to true and translate the whole idiom.
-        Return a strict JSON object with:
-        - detectedLanguage (string): ISO 639-1 code (e.g., "en", "ja", "zh")
+        Return a strict JSON object with EXACTLY these 3 fields:
+        - detectedLanguage (string): ISO 639-1 code (e.g., "en", "ja")
         - normalizedWord (string): The clean, dictionary form of the core vocabulary word
         - translatedText (string): Vietnamese translation (natural and context-aware)
-        - englishExplanation (string): A simple English explanation of the word's meaning in this specific context, including any grammatical nuances (use A2/B1 level English).
-        - partOfSpeech (string): Part of speech (e.g., Noun, Verb, Adjective, etc.)
-        - ipa (string): The actual phonetic transcription (e.g., /maɪˈɡreɪʃn/ for English IPA, Romaji for Japanese). DO NOT output placeholders like /.../
-        - isIdiom (boolean): true if it's an idiom/phrasal verb
       `;
       
       if (model.includes('gpt') || model.includes('llama')) {
