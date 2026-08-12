@@ -2,9 +2,8 @@ import { NextResponse } from 'next/server';
 import { GoogleGenAI } from '@google/genai';
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "../../auth/[...nextauth]/route";
-import { PrismaClient } from "@prisma/client";
 
-const prisma = new PrismaClient();
+import { prisma } from '../../../../lib/prisma';
 
 export async function POST(req: Request) {
   try {

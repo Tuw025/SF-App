@@ -3,9 +3,8 @@ import Redis from 'ioredis';
 import { GoogleGenAI } from '@google/genai';
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "../auth/[...nextauth]/route";
-import { PrismaClient } from "@prisma/client";
 
-const prisma = new PrismaClient();
+import { prisma } from '../../../lib/prisma';
 const redis = new Redis(process.env.REDIS_URL || 'redis://localhost:6379', {
   lazyConnect: true,
   retryStrategy: () => null, // Tắt tự động thử lại kết nối để tránh treo server

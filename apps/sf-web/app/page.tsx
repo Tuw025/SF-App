@@ -1,4 +1,3 @@
-import { PrismaClient } from '@prisma/client'
 import { BookOpen, Flame, Clock, Download, Search, LayoutDashboard, LogOut, User as UserIcon, Globe } from 'lucide-react'
 import { getServerSession } from "next-auth/next"
 import { authOptions } from "./api/auth/[...nextauth]/route"
@@ -8,7 +7,7 @@ import AutoRefresh from '../components/auto-refresh'
 import WordDetailModal from '../components/word-detail-modal'
 import AiSettingsButton from '../components/ai-settings-button'
 
-const prisma = new PrismaClient()
+import { prisma } from '../lib/prisma';
 
 export default async function Dashboard({ searchParams }: { searchParams: Promise<{ filter?: string, lang?: string, wordId?: string }> }) {
   const session = await getServerSession(authOptions);
@@ -97,7 +96,6 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
 
   return (
     <main className="bg-mesh font-sans min-h-screen pb-20">
-      <AutoRefresh />
       {/* We need state for the Modal. Let's make a wrapper component or just use a small client component for the sidebar settings button... 
           Wait, page.tsx is a Server Component (`async function Dashboard`). We can't use `useState` here.
           Let's create a Client Component for the sidebar or just a small `AiSettingsButton` component. */}

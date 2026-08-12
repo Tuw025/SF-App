@@ -1,4 +1,3 @@
-import { PrismaClient } from '@prisma/client'
 import { getServerSession } from "next-auth/next"
 import { authOptions } from "../api/auth/[...nextauth]/route"
 import { redirect } from "next/navigation"
@@ -6,7 +5,7 @@ import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
 import Quizlet from './quizlet'
 
-const prisma = new PrismaClient()
+import { prisma } from '../../lib/prisma';
 
 export default async function ReviewPage({ searchParams }: { searchParams: Promise<{ lang?: string }> }) {
   const session = await getServerSession(authOptions);
