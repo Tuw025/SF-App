@@ -9,6 +9,9 @@ import AiSettingsButton from '../components/ai-settings-button'
 
 import { prisma } from '../lib/prisma';
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export default async function Dashboard({ searchParams }: { searchParams: Promise<{ filter?: string, lang?: string, wordId?: string }> }) {
   const session = await getServerSession(authOptions);
   
@@ -18,17 +21,29 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
 
   const userId = (session.user as any).id;
   
-  const dbUser = await prisma.user.findUnique({
-    where: { id: userId },
-    select: { aiApiKey: true }
-  });
-  const hasApiKey = !!(dbUser && dbUser.aiApiKey);
+  const params = await searchParams;
+  const currentFilter = params.filter || 'all';
+  const currentLang = params.lang || 'en';
+  const selectedWordId = params.wordId;
 
-  // Lấy toàn bộ ngày hoạt động (tạo hoặc ôn tập từ vựng)
-  const allWords = await prisma.word.findMany({
-    where: { userId },
-    select: { createdAt: true, updatedAt: true }
-  });
+  // Build truy vấn (Query) dựa trên Filter và Ngôn ngữ
+  const whereClause: any = { userId: userId, language: currentLang };
+  
+  if (currentFilter === 'due') {
+    whereClause.nextReviewDate = { lte: new Date() };
+  }
+
+  // Chạy SONG SONG tất cả các truy vấn Database để giảm thời gian chờ từ 6x xuống 1x
+  const [dbUser, allWords, words, totalWords, dueWords, selectedWord] = await Promise.all([
+    prisma.user.findUnique({ where: { id: userId }, select: { aiApiKey: true } }),
+    prisma.word.findMany({ where: { userId }, select: { createdAt: true, updatedAt: true } }),
+    prisma.word.findMany({ where: whereClause, orderBy: { createdAt: 'desc' }, take: 50 }),
+    prisma.word.count({ where: { userId, language: currentLang } }),
+    prisma.word.count({ where: { userId, language: currentLang, nextReviewDate: { lte: new Date() } } }),
+    selectedWordId ? prisma.word.findUnique({ where: { id: selectedWordId } }) : Promise.resolve(null)
+  ]);
+
+  const hasApiKey = !!(dbUser && dbUser.aiApiKey);
 
   const activeDates = new Set<string>();
   allWords.forEach((w: any) => {
@@ -64,34 +79,6 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
         break;
       }
     }
-  }
-
-  const params = await searchParams;
-  const currentFilter = params.filter || 'all';
-  const currentLang = params.lang || 'en';
-  const selectedWordId = params.wordId;
-
-  // Build truy vấn (Query) dựa trên Filter và Ngôn ngữ
-  const whereClause: any = { userId: userId, language: currentLang };
-  
-  if (currentFilter === 'due') {
-    whereClause.nextReviewDate = { lte: new Date() };
-  }
-
-  const words = await prisma.word.findMany({
-    where: whereClause,
-    orderBy: { createdAt: 'desc' },
-    take: 50
-  });
-
-  // Đếm tổng số lượng (Thống kê)
-  const totalWords = await prisma.word.count({ where: { userId, language: currentLang } });
-  const dueWords = await prisma.word.count({ where: { userId, language: currentLang, nextReviewDate: { lte: new Date() } } });
-
-  // Fetch selected word if any
-  let selectedWord = null;
-  if (selectedWordId) {
-    selectedWord = await prisma.word.findUnique({ where: { id: selectedWordId } });
   }
 
   return (
