@@ -31,7 +31,7 @@ export async function POST(req: Request) {
     }
 
     let apiKey = '';
-    let model = 'gemini-3.5-flash';
+    let model = 'gemini-1.5-flash';
     
     const session = await getServerSession(authOptions);
     if (session && session.user) {
@@ -45,8 +45,8 @@ export async function POST(req: Request) {
       }
     }
 
-    if (model === 'gemini-1.5-flash') {
-      model = 'gemini-3.5-flash';
+    if (model === 'gemini-3.5-flash') {
+      model = 'gemini-1.5-flash';
     }
 
     if (!apiKey) {
@@ -56,9 +56,11 @@ export async function POST(req: Request) {
     // 1. LLM Caching Strategy: Check Redis Cache
     const contextHash = Buffer.from(contextSentence || "").toString('base64').substring(0, 15);
     const cacheKey = `word:${originalText.toLowerCase()}:${contextHash}`;
+    let isFromCache = false;
     let translationData: string | null = null;
     try {
       translationData = await redis.get(cacheKey);
+      if (translationData) isFromCache = true;
     } catch (e) {
       console.warn("Bỏ qua cache do lỗi Redis:", e);
     }
@@ -151,17 +153,22 @@ export async function POST(req: Request) {
         throw new Error("Invalid JSON structure in cache");
       }
     } catch (parseError) {
-      console.warn("Lỗi Parse JSON (Cache Poisoning). Xóa cache và ném lỗi để người dùng thử lại:", parseError);
+      console.warn("Lỗi Parse JSON:", parseError);
       try {
         await redis.del(cacheKey);
       } catch(e) {}
       
-      // Nếu đã từng lấy từ cache ra mà bị lỗi -> Phải gọi lại AI. Nhưng ở đây đang ở cuối block, 
-      // nên cách nhanh nhất là trả về lỗi yêu cầu người dùng nhấp lại.
-      return NextResponse.json({ 
-        status: 'error', 
-        message: 'Dữ liệu bộ nhớ tạm bị hỏng. Đã xóa cache, vui lòng bôi đen lại từ vựng để tải kết quả mới.' 
-      }, { status: 500, headers: { 'Access-Control-Allow-Origin': '*' } });
+      if (isFromCache) {
+        return NextResponse.json({ 
+          status: 'error', 
+          message: 'Dữ liệu bộ nhớ tạm bị hỏng. Đã xóa cache, vui lòng bôi đen lại từ vựng để tải kết quả mới.' 
+        }, { status: 500, headers: { 'Access-Control-Allow-Origin': '*' } });
+      } else {
+        return NextResponse.json({ 
+          status: 'error', 
+          message: 'AI trả về định dạng không đúng chuẩn (Lỗi hệ thống). Vui lòng bôi đen lại từ vựng để AI dịch lại.' 
+        }, { status: 500, headers: { 'Access-Control-Allow-Origin': '*' } });
+      }
     }
 
     return NextResponse.json({ status: 'success', data: parsedData }, {
