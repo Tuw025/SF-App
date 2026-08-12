@@ -65,6 +65,31 @@ export async function POST(req: Request) {
       console.warn("Bỏ qua cache do lỗi Redis:", e);
     }
 
+    if (!translationData && session && session.user) {
+      try {
+        const dbWord = await prisma.word.findFirst({
+          where: {
+            userId: (session.user as any).id,
+            originalText: {
+              equals: originalText.trim(),
+              mode: 'insensitive'
+            }
+          }
+        });
+        if (dbWord) {
+          const cachedJson = {
+            detectedLanguage: dbWord.language || "en",
+            normalizedWord: dbWord.originalText,
+            translatedText: dbWord.translatedText
+          };
+          translationData = JSON.stringify(cachedJson);
+          isFromCache = true;
+        }
+      } catch (dbError) {
+        console.warn("Lỗi khi tìm từ trong DB:", dbError);
+      }
+    }
+
     if (!translationData) {
       // 2. Cache Miss -> Call Gemini AI
       const prompt = `
