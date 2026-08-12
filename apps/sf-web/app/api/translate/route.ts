@@ -92,7 +92,7 @@ export async function POST(req: Request) {
           body: JSON.stringify({
             model: model,
             messages: [{ role: 'user', content: prompt }],
-            temperature: 0,
+            temperature: 0.1,
             response_format: { type: "json_object" }
           })
         });
@@ -110,7 +110,7 @@ export async function POST(req: Request) {
           model: model,
           contents: prompt,
           config: {
-            temperature: 0,
+            temperature: 0.1,
             responseMimeType: 'application/json'
           }
         });
@@ -130,8 +130,8 @@ export async function POST(req: Request) {
     return NextResponse.json({ status: 'success', data: parsedData }, {
       headers: { 'Access-Control-Allow-Origin': '*' }
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error("API Error:", error);
-    return NextResponse.json({ status: 'error', message: 'Lỗi khi gọi AI. Có thể API Key của bạn không hợp lệ hoặc hết tiền.' }, { status: 500, headers: { 'Access-Control-Allow-Origin': '*' } });
+    return NextResponse.json({ status: 'error', message: 'Lỗi khi gọi AI: ' + (error.message || 'Hết Token hoặc Key sai') }, { status: 500, headers: { 'Access-Control-Allow-Origin': '*' } });
   }
 }

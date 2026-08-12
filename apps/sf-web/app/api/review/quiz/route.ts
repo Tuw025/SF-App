@@ -49,13 +49,13 @@ export async function POST(req: Request) {
       {
         "question": "The sentence with ____ in it",
         "options": [
-          "distractor1",
-          "correct_word",
-          "distractor2",
-          "distractor3"
+          "[first wrong word]",
+          "[the correct word]",
+          "[second wrong word]",
+          "[third wrong word]"
         ],
-        "correctAnswer": "correct_word",
-        "explanation": "Brief explanation in VERY SIMPLE, friendly English (A1-A2 level) of why this is the correct word. Use basic vocabulary. THIS MUST BE IN ENGLISH NO MATTER WHAT THE TARGET LANGUAGE IS."
+        "correctAnswer": "[the correct word]",
+        "explanation": "[Write a brief explanation here in VERY SIMPLE, friendly English (A1-A2 level) about why this is the correct word. THIS MUST BE IN ENGLISH]"
       }
       
       Do not include any markdown backticks like ```json in your response, just the raw JSON object.

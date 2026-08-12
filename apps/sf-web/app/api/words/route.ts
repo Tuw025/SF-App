@@ -76,7 +76,7 @@ export async function POST(req: Request) {
             body: JSON.stringify({
               model: dbUser.preferredAiModel,
               messages: [{ role: 'user', content: prompt }],
-              temperature: 0,
+              temperature: 0.1,
               response_format: { type: "json_object" }
             })
           });
@@ -90,7 +90,7 @@ export async function POST(req: Request) {
           const response = await ai.models.generateContent({
             model: dbUser.preferredAiModel,
             contents: prompt,
-            config: { temperature: 0, responseMimeType: 'application/json' }
+            config: { temperature: 0.1, responseMimeType: 'application/json' }
           });
           aiResponseData = response.text || "{}";
         }
