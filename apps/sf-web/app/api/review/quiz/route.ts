@@ -58,7 +58,7 @@ export async function POST(req: Request) {
         "explanation": "[Write a brief explanation here in VERY SIMPLE, friendly English (A1-A2 level) about why this is the correct word. THIS MUST BE IN ENGLISH]"
       }
       
-      Do not include any markdown backticks like ```json in your response, just the raw JSON object.
+      Do not include any markdown backticks like \`\`\`json in your response, just the raw JSON object.
     `;
     
     let quizData = "{}";
