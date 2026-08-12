@@ -6,7 +6,7 @@ export async function GET(req: Request) {
     const { searchParams } = new URL(req.url);
     const word = searchParams.get('word') || 'sector';
     const context = searchParams.get('context') || "She brings public sector experience";
-    const user = await prisma.user.findFirst({ where: { preferredAiModel: { contains: "gemini" }, aiApiKey: { not: null, not: "" } } });
+    const user = await prisma.user.findFirst({ where: { aiApiKey: { not: null } } });
     if (!user) return NextResponse.json({ error: "No Gemini key found in DB" });
     const apiKey = user.aiApiKey;
 
