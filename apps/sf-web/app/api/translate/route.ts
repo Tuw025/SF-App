@@ -4,11 +4,14 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "../auth/[...nextauth]/route";
 
 import { prisma } from '../../../lib/prisma';
-const redis = new Redis(process.env.REDIS_URL || 'redis://localhost:6379', {
+const hasRedis = !!process.env.REDIS_URL;
+const redis = hasRedis ? new Redis(process.env.REDIS_URL, {
   lazyConnect: true,
-  retryStrategy: () => null, // Tắt tự động thử lại kết nối để tránh treo server
-});
-redis.on('error', (err) => console.error('Redis connection error (ignored during build):', err));
+  retryStrategy: () => null, 
+}) : null;
+if (redis) {
+  redis.on('error', (err) => console.error('Redis error (ignored):', err));
+}
 
 export async function OPTIONS() {
   return new NextResponse(null, {
@@ -32,16 +35,57 @@ export async function POST(req: Request) {
 
     let apiKey = '';
     let model = 'gemini-3.5-flash';
-    
+    let isFromCache = false;
+    let translationData: string | null = null;
+    const contextHash = Buffer.from(contextSentence || "").toString('base64').substring(0, 15);
+    const cacheKey = `word:${originalText.toLowerCase()}:${contextHash}`;
+
     const session = await getServerSession(authOptions);
+    
+    // Parallelize DB queries for maximum speed
+    let dbUserPromise = null;
+    let dbWordPromise = null;
+    
     if (session && session.user) {
-      const dbUser = await prisma.user.findUnique({
+      dbUserPromise = prisma.user.findUnique({
         where: { id: (session.user as any).id },
         select: { preferredAiModel: true, aiApiKey: true }
       });
+      
+      dbWordPromise = prisma.word.findFirst({
+        where: {
+          userId: (session.user as any).id,
+          originalText: {
+            equals: originalText.trim(),
+            mode: 'insensitive'
+          }
+        }
+      });
+    }
+
+    if (hasRedis && redis) {
+      try {
+        translationData = await redis.get(cacheKey);
+        if (translationData) isFromCache = true;
+      } catch (e) {}
+    }
+
+    if (session && session.user) {
+      const [dbUser, dbWord] = await Promise.all([dbUserPromise, dbWordPromise]);
+      
       if (dbUser && dbUser.aiApiKey) {
         apiKey = dbUser.aiApiKey;
         model = dbUser.preferredAiModel;
+      }
+      
+      if (!translationData && dbWord) {
+        const cachedJson = {
+          detectedLanguage: dbWord.language || "en",
+          normalizedWord: dbWord.originalText,
+          translatedText: dbWord.translatedText
+        };
+        translationData = JSON.stringify(cachedJson);
+        isFromCache = true;
       }
     }
 
@@ -49,45 +93,8 @@ export async function POST(req: Request) {
       model = 'gemini-3.5-flash';
     }
 
-    if (!apiKey) {
+    if (!apiKey && !translationData) {
       return NextResponse.json({ status: 'error', message: 'Hệ thống chưa được cấp API Key và bạn cũng chưa cấu hình BYOK. Vui lòng vào Dashboard cài đặt AI.' }, { status: 403, headers: { 'Access-Control-Allow-Origin': '*' } });
-    }
-
-    // 1. LLM Caching Strategy: Check Redis Cache
-    const contextHash = Buffer.from(contextSentence || "").toString('base64').substring(0, 15);
-    const cacheKey = `word:${originalText.toLowerCase()}:${contextHash}`;
-    let isFromCache = false;
-    let translationData: string | null = null;
-    try {
-      translationData = await redis.get(cacheKey);
-      if (translationData) isFromCache = true;
-    } catch (e) {
-      console.warn("Bỏ qua cache do lỗi Redis:", e);
-    }
-
-    if (!translationData && session && session.user) {
-      try {
-        const dbWord = await prisma.word.findFirst({
-          where: {
-            userId: (session.user as any).id,
-            originalText: {
-              equals: originalText.trim(),
-              mode: 'insensitive'
-            }
-          }
-        });
-        if (dbWord) {
-          const cachedJson = {
-            detectedLanguage: dbWord.language || "en",
-            normalizedWord: dbWord.originalText,
-            translatedText: dbWord.translatedText
-          };
-          translationData = JSON.stringify(cachedJson);
-          isFromCache = true;
-        }
-      } catch (dbError) {
-        console.warn("Lỗi khi tìm từ trong DB:", dbError);
-      }
     }
 
     if (!translationData) {
@@ -160,10 +167,10 @@ export async function POST(req: Request) {
         translationData = textResponse || JSON.stringify(geminiData);
       }
       
-      try {
-        await redis.set(cacheKey, translationData as string, 'EX', 60 * 60 * 24 * 30);
-      } catch (e) {
-        console.warn("Bỏ qua lưu cache do lỗi Redis");
+      if (hasRedis && redis) {
+        try {
+          await redis.set(cacheKey, translationData as string, 'EX', 60 * 60 * 24 * 30);
+        } catch (e) {}
       }
     }
 
@@ -185,9 +192,11 @@ export async function POST(req: Request) {
       }
     } catch (parseError) {
       console.warn("Lỗi Parse JSON:", parseError);
-      try {
-        await redis.del(cacheKey);
-      } catch(e) {}
+      if (hasRedis && redis) {
+        try {
+          await redis.del(cacheKey);
+        } catch(e) {}
+      }
       
       if (isFromCache) {
         return NextResponse.json({ 
