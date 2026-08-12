@@ -5,7 +5,7 @@ import { authOptions } from "../auth/[...nextauth]/route";
 
 import { prisma } from '../../../lib/prisma';
 const hasRedis = !!process.env.REDIS_URL;
-const redis = hasRedis ? new Redis(process.env.REDIS_URL, {
+const redis = hasRedis ? new Redis(process.env.REDIS_URL as string, {
   lazyConnect: true,
   retryStrategy: () => null, 
 }) : null;
