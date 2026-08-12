@@ -126,9 +126,12 @@ const Popup = () => {
 
   const handleSave = () => {
     if (!meaning) return;
-    setLoadingSave(true);
     
-    // 2. Gọi API lưu trữ khi người dùng chủ động click
+    // Tối ưu UX: Báo thành công ngay lập tức để người dùng tiếp tục đọc báo
+    setSaveStatus('success');
+    setTimeout(() => setSelectedText(''), 1500); // Ẩn popup sau 1.5s
+    
+    // Gọi API lưu trữ ngầm (Fire and forget)
     chrome.runtime.sendMessage({
       type: 'SAVE_WORD',
       payload: {
@@ -136,15 +139,6 @@ const Popup = () => {
         translatedText: meaning.translatedText,
         contextSentence: contextSentence,
         language: meaning.detectedLanguage || 'en'
-      }
-    }, (response) => {
-      setLoadingSave(false);
-      if (response?.status === 'success') {
-        setSaveStatus('success');
-        setTimeout(() => setSelectedText(''), 2500); // Ẩn popup sau 2.5s
-      } else {
-        setSaveStatus('error');
-        setErrorMessage(response?.message || "Lưu thất bại. Có thể bạn chưa đăng nhập (NextAuth).");
       }
     });
   };
@@ -224,7 +218,7 @@ const Popup = () => {
       {meaning && (
         <button 
           onClick={handleSave}
-          disabled={loadingSave || saveStatus === 'success'}
+          disabled={saveStatus === 'success'}
           style={{
             width: '100%',
             padding: '12px',
@@ -233,13 +227,13 @@ const Popup = () => {
             backgroundColor: saveStatus === 'success' ? '#10b981' : saveStatus === 'error' ? '#ef4444' : '#0f172a',
             color: 'white',
             fontWeight: 'bold',
-            cursor: (loadingSave || saveStatus === 'success') ? 'not-allowed' : 'pointer',
+            cursor: saveStatus === 'success' ? 'not-allowed' : 'pointer',
             transition: 'all 0.2s',
             marginTop: '8px',
-            opacity: loadingSave ? 0.7 : 1
+            opacity: 1
           }}
         >
-          {loadingSave ? 'Đang phân tích sâu & Lưu...' : saveStatus === 'success' ? '✔ Đã lưu vào SF' : saveStatus === 'error' ? '✖ Lưu thất bại' : 'Lưu vào hệ thống SF'}
+          {saveStatus === 'success' ? '✔ Đã lưu vào SF' : saveStatus === 'error' ? '✖ Lưu thất bại' : 'Lưu vào hệ thống SF'}
         </button>
       )}
       {saveStatus === 'error' && <p style={{ fontSize: '12px', color: '#ef4444', marginTop: '8px' }}>{errorMessage}</p>}
