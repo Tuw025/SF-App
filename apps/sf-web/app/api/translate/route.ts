@@ -53,7 +53,12 @@ export async function POST(req: Request) {
     // 1. LLM Caching Strategy: Check Redis Cache
     const contextHash = Buffer.from(contextSentence || "").toString('base64').substring(0, 15);
     const cacheKey = `word:${originalText.toLowerCase()}:${contextHash}`;
-    let translationData = await redis.get(cacheKey);
+    let translationData: string | null = null;
+    try {
+      translationData = await redis.get(cacheKey);
+    } catch (e) {
+      console.warn("Bỏ qua cache do lỗi Redis:", e);
+    }
 
     if (!translationData) {
       // 2. Cache Miss -> Call Gemini AI
@@ -117,7 +122,11 @@ export async function POST(req: Request) {
         translationData = response.text || "{}";
       }
       
-      await redis.set(cacheKey, translationData as string, 'EX', 60 * 60 * 24 * 30);
+      try {
+        await redis.set(cacheKey, translationData as string, 'EX', 60 * 60 * 24 * 30);
+      } catch (e) {
+        console.warn("Bỏ qua lưu cache do lỗi Redis");
+      }
     }
 
     let cleanedData = (translationData || "{}").replace(/```json/g, '').replace(/```/g, '').trim();

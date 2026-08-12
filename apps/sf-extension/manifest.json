@@ -22,6 +22,7 @@
   ],
   "host_permissions": [
     "http://localhost:3000/*",
+    "https://sf-app-sf-web.vercel.app/*",
     "https://sf-web.vercel.app/*"
   ]
 }

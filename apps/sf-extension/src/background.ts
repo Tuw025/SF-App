@@ -20,6 +20,9 @@ function isBlocked(url: string) {
   }
 }
 
+// const API_BASE_URL = 'http://localhost:3000'; // Dùng khi test Local
+const API_BASE_URL = 'https://sf-app-sf-web.vercel.app'; // Dùng khi Deploy
+
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   const url = sender.tab?.url || '';
   
@@ -29,7 +32,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   }
 
   if (request.type === 'TRANSLATE_WORD') {
-    fetch('http://localhost:3000/api/translate', {
+    fetch(`${API_BASE_URL}/api/translate`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
@@ -47,7 +50,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   }
 
   if (request.type === 'SAVE_WORD') {
-    fetch('http://localhost:3000/api/words', {
+    fetch(`${API_BASE_URL}/api/words`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include', // Kèm Cookie NextAuth Session
@@ -59,7 +62,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     })
     .then(res => {
       if (res.status === 401) {
-        throw new Error("Vui lòng đăng nhập tại localhost:3000 trước");
+        throw new Error(`Vui lòng đăng nhập tại ${API_BASE_URL} trước`);
       }
       return res.json();
     })
