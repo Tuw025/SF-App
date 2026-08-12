@@ -60,8 +60,13 @@ export async function POST(req: Request) {
 
         let aiResponseData = "{}";
 
-        if (dbUser.preferredAiModel.includes('gpt') || dbUser.preferredAiModel.includes('llama')) {
-          const endpoint = dbUser.preferredAiModel.includes('llama') 
+        let dbModel = dbUser.preferredAiModel;
+        if (dbModel === 'gemini-1.5-flash') {
+          dbModel = 'gemini-3.5-flash';
+        }
+
+        if (dbModel.includes('gpt') || dbModel.includes('llama')) {
+          const endpoint = dbModel.includes('llama') 
             ? 'https://api.groq.com/openai/v1/chat/completions' 
             : 'https://api.openai.com/v1/chat/completions';
             
@@ -72,7 +77,7 @@ export async function POST(req: Request) {
               'Authorization': `Bearer ${dbUser.aiApiKey}`
             },
             body: JSON.stringify({
-              model: dbUser.preferredAiModel,
+              model: dbModel,
               messages: [{ role: 'user', content: prompt }],
               temperature: 0.1,
               response_format: { type: "json_object" }
@@ -84,7 +89,7 @@ export async function POST(req: Request) {
             aiResponseData = openAiData.choices[0].message.content || "{}";
           }
         } else {
-          const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${dbUser.preferredAiModel}:generateContent?key=${dbUser.aiApiKey}`;
+          const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${dbModel}:generateContent?key=${dbUser.aiApiKey}`;
           
           const geminiRes = await fetch(endpoint, {
             method: 'POST',

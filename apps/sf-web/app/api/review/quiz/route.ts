@@ -23,6 +23,10 @@ export async function POST(req: Request) {
       }
     }
 
+    if (model === 'gemini-1.5-flash') {
+      model = 'gemini-3.5-flash';
+    }
+
     if (!apiKey) {
       return NextResponse.json({ status: 'error', message: 'Hệ thống chưa được cấp API Key và bạn cũng chưa cấu hình BYOK. Vui lòng vào Dashboard cài đặt AI.' }, { status: 403 });
     }
