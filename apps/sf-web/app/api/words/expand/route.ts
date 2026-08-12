@@ -108,7 +108,7 @@ export async function POST(req: Request) {
       expandData = textResponse || "{}";
     }
 
-    let parsedData = [];
+    let parsedData: any = [];
     try {
       let cleanedData = expandData.replace(/```json/g, '').replace(/```/g, '').trim();
       parsedData = JSON.parse(cleanedData);

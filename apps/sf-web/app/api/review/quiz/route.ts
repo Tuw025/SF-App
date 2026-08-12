@@ -115,7 +115,7 @@ export async function POST(req: Request) {
         quizData = textResponse || "{}";
     }
     
-    let parsedData = {};
+    let parsedData: any = {};
     try {
       let cleanedData = quizData.replace(/```json/g, '').replace(/```/g, '').trim();
       parsedData = JSON.parse(cleanedData);
