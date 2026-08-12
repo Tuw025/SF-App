@@ -54,10 +54,10 @@ export async function POST(req: Request) {
           "distractor3"
         ],
         "correctAnswer": "correct_word",
-        "explanation": "Brief explanation in Vietnamese of why this is the correct word. THIS MUST BE IN VIETNAMESE NO MATTER WHAT THE TARGET LANGUAGE IS."
+        "explanation": "Brief explanation in natural, fluent Vietnamese of why this is the correct word. Do not hallucinate words. Be clear and concise. THIS MUST BE IN VIETNAMESE NO MATTER WHAT THE TARGET LANGUAGE IS."
       }
       
-      Do not include any markdown backticks like \`\`\`json in your response, just the raw JSON object.
+      Do not include any markdown backticks like ```json in your response, just the raw JSON object.
     `;
     
     let quizData = "{}";
@@ -76,7 +76,7 @@ export async function POST(req: Request) {
         body: JSON.stringify({
           model: model,
           messages: [{ role: 'user', content: prompt }],
-          temperature: 0.7,
+          temperature: 0.1,
           response_format: { type: "json_object" }
         })
       });
@@ -91,7 +91,7 @@ export async function POST(req: Request) {
         model: model,
         contents: prompt,
         config: {
-          temperature: 0.7,
+          temperature: 0.1,
           responseMimeType: 'application/json'
         }
       });
