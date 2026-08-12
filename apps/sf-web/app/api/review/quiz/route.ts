@@ -43,6 +43,7 @@ export async function POST(req: Request) {
       3. The sentence MUST NOT be the original context sentence. Generate a completely NEW sentence.
       4. Provide exactly 4 UNIQUE options. One option MUST be exactly "${word}".
       5. The other 3 options MUST be completely different from each other and different from "${word}". Do NOT generate duplicate options.
+      6. The options MUST NOT contain any underscores or punctuation. Just the pure words.
       
       Return STRICTLY a JSON object in this exact format:
       {
@@ -54,7 +55,7 @@ export async function POST(req: Request) {
           "distractor3"
         ],
         "correctAnswer": "correct_word",
-        "explanation": "Brief explanation in natural, fluent Vietnamese of why this is the correct word. Do not hallucinate words. Be clear and concise. THIS MUST BE IN VIETNAMESE NO MATTER WHAT THE TARGET LANGUAGE IS."
+        "explanation": "Brief explanation in VERY SIMPLE, friendly English (A1-A2 level) of why this is the correct word. Use basic vocabulary. THIS MUST BE IN ENGLISH NO MATTER WHAT THE TARGET LANGUAGE IS."
       }
       
       Do not include any markdown backticks like ```json in your response, just the raw JSON object.
