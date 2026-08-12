@@ -28,6 +28,7 @@ export function calculateSM2(
 
   const nextReviewDate = new Date();
   nextReviewDate.setDate(nextReviewDate.getDate() + nextInterval);
+  nextReviewDate.setHours(0, 0, 0, 0);
 
   return {
     repetition: nextRepetition,

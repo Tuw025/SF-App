@@ -27,11 +27,14 @@ const Popup = () => {
       if (popupRef.current && popupRef.current.contains(e.target as Node)) return;
 
       const selection = window.getSelection();
-      const text = selection?.toString().trim();
+      const text = selection?.toString().trim() || "";
       
-      if (text && text.length > 0 && text.length < 50) {
+      // Giới hạn số từ tối đa là 7 từ (để tránh dịch cả đoạn văn dài làm lãng phí token)
+      const wordCount = text.split(/\s+/).filter(w => w.length > 0).length;
+      if (text.length > 0 && wordCount <= 7 && text.length < 50) {
         setSelectedText(text);
-        const getFullSentence = (selection: Selection) => {
+        const getFullSentence = (selection: Selection | null) => {
+          if (!selection) return "";
           const node = selection.anchorNode;
           if (!node || !node.textContent) return "";
           const text = node.textContent;

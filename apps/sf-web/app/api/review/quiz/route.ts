@@ -1,5 +1,4 @@
 import { NextResponse } from 'next/server';
-import { GoogleGenAI } from '@google/genai';
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "../../auth/[...nextauth]/route";
 
@@ -87,16 +86,29 @@ export async function POST(req: Request) {
       quizData = openAiData.choices[0].message.content || "{}";
       
     } else {
-      const ai = new GoogleGenAI({ apiKey });
-      const response = await ai.models.generateContent({
-        model: model,
-        contents: prompt,
-        config: {
-          temperature: 0.1,
-          responseMimeType: 'application/json'
+        const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+        
+        const geminiRes = await fetch(endpoint, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: prompt }] }],
+            generationConfig: {
+              temperature: 0.1,
+              responseMimeType: 'application/json'
+            }
+          })
+        });
+
+        if (!geminiRes.ok) {
+          throw new Error('Gemini API Error: ' + await geminiRes.text());
         }
-      });
-      quizData = response.text || "{}";
+
+        const geminiData = await geminiRes.json();
+        const textResponse = geminiData.candidates?.[0]?.content?.parts?.[0]?.text;
+        quizData = textResponse || "{}";
     }
     
     let cleanedData = quizData.replace(/```json/g, '').replace(/```/g, '').trim();

@@ -1,8 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "../auth/[...nextauth]/route";
-import { GoogleGenAI } from '@google/genai';
-
 import { prisma } from '../../../lib/prisma';
 
 export async function OPTIONS() {
@@ -86,13 +84,29 @@ export async function POST(req: Request) {
             aiResponseData = openAiData.choices[0].message.content || "{}";
           }
         } else {
-          const ai = new GoogleGenAI({ apiKey: dbUser.aiApiKey });
-          const response = await ai.models.generateContent({
-            model: dbUser.preferredAiModel,
-            contents: prompt,
-            config: { temperature: 0.1, responseMimeType: 'application/json' }
+          const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${dbUser.preferredAiModel}:generateContent?key=${dbUser.aiApiKey}`;
+          
+          const geminiRes = await fetch(endpoint, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              contents: [{ parts: [{ text: prompt }] }],
+              generationConfig: {
+                temperature: 0.1,
+                responseMimeType: 'application/json'
+              }
+            })
           });
-          aiResponseData = response.text || "{}";
+
+          if (!geminiRes.ok) {
+            throw new Error('Gemini API Error: ' + await geminiRes.text());
+          }
+
+          const geminiData = await geminiRes.json();
+          const textResponse = geminiData.candidates?.[0]?.content?.parts?.[0]?.text;
+          aiResponseData = textResponse || "{}";
         }
 
         let cleanedData = aiResponseData.replace(/```json/g, '').replace(/```/g, '').trim();
