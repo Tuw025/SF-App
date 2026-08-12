@@ -9,7 +9,7 @@ export async function POST(req: Request) {
     const { word, contextSentence, language } = await req.json();
 
     let apiKey = '';
-    let model = 'gemini-1.5-flash';
+    let model = 'gemini-3.5-flash';
     
     const session = await getServerSession(authOptions);
     if (session && session.user) {
@@ -23,8 +23,8 @@ export async function POST(req: Request) {
       }
     }
 
-    if (model === 'gemini-3.5-flash') {
-      model = 'gemini-1.5-flash';
+    if (model === 'gemini-1.5-flash') {
+      model = 'gemini-3.5-flash';
     }
 
     if (!apiKey) {

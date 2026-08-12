@@ -62,10 +62,10 @@ export async function POST(req: Request) {
 
         let dbModel = dbUser.preferredAiModel;
         if (!dbModel) {
-          dbModel = 'gemini-1.5-flash';
+          dbModel = 'gemini-3.5-flash';
         }
-        if (dbModel === 'gemini-3.5-flash') {
-          dbModel = 'gemini-1.5-flash';
+        if (dbModel === 'gemini-1.5-flash') {
+          dbModel = 'gemini-3.5-flash';
         }
 
         if (dbModel.includes('gpt') || dbModel.includes('llama')) {

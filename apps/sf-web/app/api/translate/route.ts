@@ -31,7 +31,7 @@ export async function POST(req: Request) {
     }
 
     let apiKey = '';
-    let model = 'gemini-1.5-flash';
+    let model = 'gemini-3.5-flash';
     
     const session = await getServerSession(authOptions);
     if (session && session.user) {
@@ -45,8 +45,8 @@ export async function POST(req: Request) {
       }
     }
 
-    if (model === 'gemini-3.5-flash') {
-      model = 'gemini-1.5-flash';
+    if (model === 'gemini-1.5-flash') {
+      model = 'gemini-3.5-flash';
     }
 
     if (!apiKey) {
@@ -146,6 +146,12 @@ export async function POST(req: Request) {
     let parsedData;
     try {
       let cleanedData = (translationData || "{}").replace(/```json/g, '').replace(/```/g, '').trim();
+      
+      const jsonMatch = cleanedData.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+          cleanedData = jsonMatch[0];
+      }
+      
       parsedData = JSON.parse(cleanedData);
       
       // Nếu parsedData không phải object (VD: string trống) hoặc thiếu key quan trọng, coi như cache hỏng
