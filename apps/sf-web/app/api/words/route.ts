@@ -114,8 +114,14 @@ export async function POST(req: Request) {
           aiResponseData = textResponse || "{}";
         }
 
-        let cleanedData = aiResponseData.replace(/```json/g, '').replace(/```/g, '').trim();
-        const parsedData = JSON.parse(cleanedData);
+        let parsedData = {};
+        try {
+          let cleanedData = aiResponseData.replace(/```json/g, '').replace(/```/g, '').trim();
+          parsedData = JSON.parse(cleanedData);
+        } catch (parseError) {
+          console.error("Deep Context AI JSON Parse Error:", parseError, "Raw Data:", aiResponseData);
+          // Fallback data
+        }
         
         ipa = parsedData.ipa || "";
         isIdiom = parsedData.isIdiom || false;

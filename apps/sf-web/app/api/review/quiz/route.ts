@@ -115,11 +115,17 @@ export async function POST(req: Request) {
         quizData = textResponse || "{}";
     }
     
-    let cleanedData = quizData.replace(/```json/g, '').replace(/```/g, '').trim();
-    const parsedData = JSON.parse(cleanedData);
+    let parsedData = {};
+    try {
+      let cleanedData = quizData.replace(/```json/g, '').replace(/```/g, '').trim();
+      parsedData = JSON.parse(cleanedData);
+    } catch (parseError) {
+      console.error("Quiz API JSON Parse Error:", parseError, "Raw Data:", quizData);
+      throw new Error("Lỗi đọc dữ liệu từ AI. Vui lòng thử lại.");
+    }
 
     // Shuffle options randomly
-    parsedData.options = parsedData.options.sort(() => Math.random() - 0.5);
+    (parsedData as any).options = (parsedData as any).options.sort(() => Math.random() - 0.5);
 
     return NextResponse.json({ status: 'success', data: parsedData });
   } catch (error) {

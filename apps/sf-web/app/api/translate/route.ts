@@ -140,8 +140,29 @@ export async function POST(req: Request) {
       }
     }
 
-    let cleanedData = (translationData || "{}").replace(/```json/g, '').replace(/```/g, '').trim();
-    const parsedData = JSON.parse(cleanedData);
+    // --- XỬ LÝ LỖI CACHE BỊ HỎNG (CACHE POISONING) ---
+    let parsedData;
+    try {
+      let cleanedData = (translationData || "{}").replace(/```json/g, '').replace(/```/g, '').trim();
+      parsedData = JSON.parse(cleanedData);
+      
+      // Nếu parsedData không phải object (VD: string trống) hoặc thiếu key quan trọng, coi như cache hỏng
+      if (!parsedData || typeof parsedData !== 'object' || (!parsedData.translatedText && !parsedData.normalizedWord)) {
+        throw new Error("Invalid JSON structure in cache");
+      }
+    } catch (parseError) {
+      console.warn("Lỗi Parse JSON (Cache Poisoning). Xóa cache và ném lỗi để người dùng thử lại:", parseError);
+      try {
+        await redis.del(cacheKey);
+      } catch(e) {}
+      
+      // Nếu đã từng lấy từ cache ra mà bị lỗi -> Phải gọi lại AI. Nhưng ở đây đang ở cuối block, 
+      // nên cách nhanh nhất là trả về lỗi yêu cầu người dùng nhấp lại.
+      return NextResponse.json({ 
+        status: 'error', 
+        message: 'Dữ liệu bộ nhớ tạm bị hỏng. Đã xóa cache, vui lòng bôi đen lại từ vựng để tải kết quả mới.' 
+      }, { status: 500, headers: { 'Access-Control-Allow-Origin': '*' } });
+    }
 
     return NextResponse.json({ status: 'success', data: parsedData }, {
       headers: { 'Access-Control-Allow-Origin': '*' }

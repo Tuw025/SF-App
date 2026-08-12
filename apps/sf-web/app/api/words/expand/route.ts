@@ -108,8 +108,14 @@ export async function POST(req: Request) {
       expandData = textResponse || "{}";
     }
 
-    let cleanedData = expandData.replace(/```json/g, '').replace(/```/g, '').trim();
-    const parsedData = JSON.parse(cleanedData);
+    let parsedData = [];
+    try {
+      let cleanedData = expandData.replace(/```json/g, '').replace(/```/g, '').trim();
+      parsedData = JSON.parse(cleanedData);
+    } catch (parseError) {
+      console.error("Expand API JSON Parse Error:", parseError, "Raw Data:", expandData);
+      throw new Error("Lỗi đọc dữ liệu từ AI. Vui lòng thử lại.");
+    }
 
     return NextResponse.json({ status: 'success', data: parsedData });
   } catch (error) {
