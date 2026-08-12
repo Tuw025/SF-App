@@ -172,7 +172,7 @@ export async function POST(req: Request) {
       } else {
         return NextResponse.json({ 
           status: 'error', 
-          message: 'AI trả về định dạng không đúng chuẩn (Lỗi hệ thống). Vui lòng bôi đen lại từ vựng để AI dịch lại.' 
+          message: `AI trả về định dạng không đúng chuẩn (Lỗi hệ thống). Raw Data: ${translationData?.substring(0, 50)}` 
         }, { status: 500, headers: { 'Access-Control-Allow-Origin': '*' } });
       }
     }
