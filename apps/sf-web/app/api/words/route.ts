@@ -26,7 +26,7 @@ export async function POST(req: Request) {
 
     const userId = (session.user as any).id;
     const body = await req.json();
-    const { originalText, translatedText, contextSentence, domain, contextUrl, language } = body;
+    const { originalText, translatedText, contextSentence, domain, contextUrl, language, ipa: payloadIpa } = body;
 
     if (!originalText || !translatedText) {
       return NextResponse.json({ error: 'Missing parameters' }, { status: 400 });
@@ -38,7 +38,7 @@ export async function POST(req: Request) {
       select: { preferredAiModel: true, aiApiKey: true }
     });
 
-    let ipa = "";
+    let ipa = payloadIpa || "";
     let isIdiom = false;
     let partOfSpeech = null;
     let englishExplanation = null;
@@ -54,7 +54,7 @@ export async function POST(req: Request) {
           Return a strict JSON object with EXACTLY these 4 fields:
           - englishExplanation (string): A simple English explanation of the word's meaning in this specific context, including any grammatical nuances (use A2/B1 level English).
           - partOfSpeech (string): Part of speech (e.g., Noun, Verb, Adjective, etc.)
-          - ipa (string): The actual phonetic transcription (e.g., /maɪˈɡreɪʃn/ for English IPA, Romaji for Japanese). DO NOT output placeholders like /.../
+          - ipa (string): The actual phonetic transcription (e.g., /maɪˈɡreɪʃn/ for English IPA, Hiragana for Japanese). DO NOT output placeholders like /.../
           - isIdiom (boolean): true if it's an idiom/phrasal verb
         `;
 
@@ -126,7 +126,7 @@ export async function POST(req: Request) {
           // Fallback data
         }
         
-        ipa = parsedData.ipa || "";
+        ipa = payloadIpa || parsedData.ipa || "";
         isIdiom = parsedData.isIdiom || false;
         partOfSpeech = parsedData.partOfSpeech || null;
         englishExplanation = parsedData.englishExplanation || null;

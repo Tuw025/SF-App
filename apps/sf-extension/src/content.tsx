@@ -5,6 +5,7 @@ interface Meaning {
   translatedText: string;
   normalizedWord?: string;
   detectedLanguage?: string;
+  pronunciation?: string;
 }
 
 const Popup = () => {
@@ -108,7 +109,8 @@ const Popup = () => {
             setMeaning({
               translatedText: response.data.translatedText,
               normalizedWord: response.data.normalizedWord,
-              detectedLanguage: response.data.detectedLanguage
+              detectedLanguage: response.data.detectedLanguage,
+              pronunciation: response.data.pronunciation
             });
           } else {
             setErrorMessage(response?.message || "Không thể dịch từ này");
@@ -138,7 +140,8 @@ const Popup = () => {
         originalText: meaning.normalizedWord || selectedText,
         translatedText: meaning.translatedText,
         contextSentence: contextSentence,
-        language: meaning.detectedLanguage || 'en'
+        language: meaning.detectedLanguage || 'en',
+        ipa: meaning.pronunciation || ''
       }
     });
   };
@@ -174,9 +177,9 @@ const Popup = () => {
             {meaning?.normalizedWord || selectedText}
           </h3>
         </div>
-        {quickIpa && (
+        {(meaning?.pronunciation || quickIpa) && (
           <span style={{ fontSize: '12px', backgroundColor: '#eff6ff', color: '#2563eb', padding: '4px 8px', borderRadius: '6px', fontFamily: 'monospace', marginLeft: '10px' }}>
-            {quickIpa}
+            {meaning?.pronunciation || quickIpa}
           </span>
         )}
       </div>

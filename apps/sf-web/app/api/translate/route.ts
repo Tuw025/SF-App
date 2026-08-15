@@ -82,7 +82,8 @@ export async function POST(req: Request) {
         const cachedJson = {
           detectedLanguage: dbWord.language || "en",
           normalizedWord: dbWord.originalText,
-          translatedText: dbWord.translatedText
+          translatedText: dbWord.translatedText,
+          pronunciation: dbWord.ipa || ""
         };
         translationData = JSON.stringify(cachedJson);
         isFromCache = true;
@@ -105,13 +106,15 @@ export async function POST(req: Request) {
         
         Your tasks:
         1. Detect the language of the highlighted text (e.g., 'en', 'ja', 'zh', 'fr', 'de').
-        2. Normalize the text strictly to its root dictionary form (e.g., remove trailing punctuation).
+        2. Normalize the text strictly to its root dictionary form. CRITICAL: Do NOT split compound nouns or Kanji words. If the highlighted text is a multi-word compound (e.g., "会社員", "一生懸命"), the normalizedWord MUST be the full compound word. Do NOT truncate it to a single kanji.
         3. Translate it to Vietnamese contextually.
+        4. Provide the pronunciation (IPA for English, Hiragana for Japanese, Pinyin for Chinese, etc.).
         
-        Return a strict JSON object with EXACTLY these 3 fields:
+        Return a strict JSON object with EXACTLY these 4 fields:
         - detectedLanguage (string): ISO 639-1 code (e.g., "en", "ja")
-        - normalizedWord (string): The clean, dictionary form of the core vocabulary word
+        - normalizedWord (string): The clean, dictionary form of the core vocabulary word (Keep full compound words intact)
         - translatedText (string): Vietnamese translation (natural and context-aware)
+        - pronunciation (string): The phonetic spelling (Hiragana for Japanese, IPA for English, Pinyin for Chinese)
       `;
       
       if (model.includes('gpt') || model.includes('llama')) {
