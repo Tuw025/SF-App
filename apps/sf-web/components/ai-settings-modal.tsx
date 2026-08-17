@@ -72,7 +72,7 @@ export default function AiSettingsModal({ onClose }: AiSettingsModalProps) {
   const MODELS = [
     { id: 'gemini-3.5-flash', name: 'Gemini 3.5 Flash', type: 'free', desc: 'Nhanh, thông minh', tag: 'Miễn phí', provider: 'Google' },
     { id: 'gemini-1.5-pro', name: 'Gemini 1.5 Pro', type: 'free', desc: 'Suy luận sâu, logic tốt', tag: 'Miễn phí', provider: 'Google' },
-    { id: 'llama3-8b-8192', name: 'Llama 3 (Groq)', type: 'free', desc: 'Tốc độ siêu tốc', tag: 'Miễn phí', provider: 'Groq' },
+    { id: 'llama-3.1-8b-instant', name: 'Llama 3.1 (Groq)', type: 'free', desc: 'Tốc độ siêu tốc', tag: 'Miễn phí', provider: 'Groq' },
     { id: 'gpt-4o-mini', name: 'ChatGPT-4o Mini', type: 'paid', desc: 'Chất lượng cao', tag: 'Có phí (Rẻ)', provider: 'OpenAI' },
     { id: 'gpt-4o', name: 'ChatGPT-4o', type: 'paid', desc: 'Thông minh nhất', tag: 'Có phí', provider: 'OpenAI' },
   ]
