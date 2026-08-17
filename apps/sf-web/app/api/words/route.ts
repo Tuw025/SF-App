@@ -68,8 +68,9 @@ export async function POST(req: Request) {
           dbModel = 'gemini-3.5-flash';
         }
 
-        if (dbModel.includes('gpt') || dbModel.includes('llama')) {
-          const endpoint = dbModel.includes('llama') 
+        if (dbModel.includes('gpt') || dbModel.includes('llama') || dbModel.includes('qwen')) {
+          const isGroq = dbModel.includes('llama') || dbModel.includes('qwen');
+          const endpoint = isGroq 
             ? 'https://api.groq.com/openai/v1/chat/completions' 
             : 'https://api.openai.com/v1/chat/completions';
             

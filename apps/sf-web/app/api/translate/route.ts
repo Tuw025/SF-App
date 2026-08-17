@@ -117,9 +117,10 @@ export async function POST(req: Request) {
         - pronunciation (string): The phonetic spelling (Hiragana for Japanese, IPA for English, Pinyin for Chinese)
       `;
       
-      if (model.includes('gpt') || model.includes('llama')) {
+      if (model.includes('gpt') || model.includes('llama') || model.includes('qwen')) {
         // Handle OpenAI and Groq (OpenAI Compatible)
-        const endpoint = model.includes('llama') 
+        const isGroq = model.includes('llama') || model.includes('qwen');
+        const endpoint = isGroq 
           ? 'https://api.groq.com/openai/v1/chat/completions' 
           : 'https://api.openai.com/v1/chat/completions';
           

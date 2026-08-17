@@ -59,7 +59,7 @@ export async function POST(req: Request) {
           if (preferredAiModel.includes('gemini')) {
             const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash?key=${aiApiKey}`);
             isValid = res.ok;
-          } else if (preferredAiModel.includes('llama')) {
+          } else if (preferredAiModel.includes('llama') || preferredAiModel.includes('qwen')) {
             const res = await fetch('https://api.groq.com/openai/v1/models', {
               headers: { 'Authorization': `Bearer ${aiApiKey}` }
             });
