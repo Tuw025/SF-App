@@ -52,6 +52,32 @@ export async function POST(req: Request) {
     
     // Only update API key if it's provided and not masked
     if (aiApiKey !== undefined && !aiApiKey.includes('...')) {
+      if (aiApiKey !== "") {
+        // Validate the API key before saving
+        try {
+          let isValid = false;
+          if (preferredAiModel.includes('gemini')) {
+            const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash?key=${aiApiKey}`);
+            isValid = res.ok;
+          } else if (preferredAiModel.includes('llama')) {
+            const res = await fetch('https://api.groq.com/openai/v1/models', {
+              headers: { 'Authorization': `Bearer ${aiApiKey}` }
+            });
+            isValid = res.ok;
+          } else if (preferredAiModel.includes('gpt')) {
+            const res = await fetch('https://api.openai.com/v1/models', {
+              headers: { 'Authorization': `Bearer ${aiApiKey}` }
+            });
+            isValid = res.ok;
+          }
+          
+          if (!isValid) {
+            return NextResponse.json({ error: 'API Key không hợp lệ hoặc không có quyền truy cập.' }, { status: 400 });
+          }
+        } catch (err) {
+          return NextResponse.json({ error: 'Không thể xác thực API Key lúc này. Vui lòng thử lại.' }, { status: 400 });
+        }
+      }
       updateData.aiApiKey = aiApiKey || null; // Allow clearing the key by sending empty string
     }
 
